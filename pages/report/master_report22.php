@@ -1,0 +1,358 @@
+<?
+session_start();
+require "../../common/check.php";
+require "../../config/db_connect.php";
+require "../../common/report.class.php";
+require "../../common/my.php";
+date_default_timezone_set('Asia/Dhaka');
+
+if(isset($_POST['submit'])&&isset($_POST['report'])&&$_POST['report']>0)
+{
+	if($_POST['proj_code']>0)
+	{
+		$proj_code=$_POST['proj_code'];
+		if(isset($_POST['flat_no'])&&$_POST['flat_no']!='')
+		$flat_no=$_POST['flat_no'];
+
+	}
+	if((strlen($_POST['t_date'])==10)&&(strlen($_POST['f_date'])==10))
+	{
+	$t_date=$_POST['t_date'];
+	$f_date=$_POST['f_date'];
+	}
+	if($_POST['party_code']>0)
+	$party_code=$_POST['party_code'];
+
+switch ($_POST['report']) {
+    case 1:
+	$report="Project Summary Statement (Sold & Unsold)";
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+
+        $sql="SELECT a.proj_code,x.proj_name,
+(select count(b.flat_no) from `tbl_flat_info` b where a.proj_code=b.proj_code) as total_Plot,
+(select count(c.flat_no) from `tbl_flat_info` c where a.proj_code=c.proj_code and (status!='booked' or status is NULL)) as unsold, 
+(select sum(d.flat_size) from `tbl_flat_info` d where a.proj_code=d.proj_code and (status!='booked' or status is NULL)) as unsold_sqft,
+(select format(avg(sqft_price),2) from `tbl_flat_info` d where a.proj_code=d.proj_code limit 1) as present_rate,
+(select sum(d.flat_size) from `tbl_flat_info` d where a.proj_code=d.proj_code and status='booked') as sold_sqft,
+(select sum(inst_amount) from tbl_flat_cost_installment e where a.proj_code=e.proj_code) as so_far_sale_value,
+(select sum(rcv_amount) from tbl_flat_cost_installment e where a.proj_code=e.proj_code) as so_far_receive_value,
+(select sum(inst_amount)-sum(rcv_amount) from tbl_flat_cost_installment e where a.proj_code=e.proj_code) as balance_amount,
+(select sum(d.total_price) from `tbl_flat_info` d where a.proj_code=d.proj_code and (status!='booked' or status is NULL)) as unsold_value,
+sum(total_price) as total_sales_value
+FROM tbl_flat_info a,tbl_project_info x
+where a.proj_code=x.proj_code ".$proj_con."
+group by a.proj_code";
+break;
+    case 2:
+	$report="Allotment Booking Statement";
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+		if(isset($party_code))
+{$client_name=find_a_field('tbl_party_info','party_name','party_code='.$party_code); $party_con=' and c.party_code='.$party_code;}
+
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.booked_on between \''.$fr_date.'\' and \''.$to_date.'\'';}
+	$sql="SELECT b.proj_name,a.flat_no as Plot_No,a.flat_size as Plot_Size,a.total_price,a.status,a.booked_on,c.party_name as Customer_name FROM `tbl_flat_info` a,tbl_project_info b,tbl_party_info c WHERE a.proj_code=b.proj_code and a.party_code=c.party_code ".$proj_con.$date_con.$flat_con.$party_con;
+	
+	
+		break;
+		
+    case 3:
+	$report="Flat Status & Price Configaration";
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.booked_on between \''.$fr_date.'\' and \''.$to_date.'\'';}
+	$sql="SELECT b.proj_name,a.flat_no as Plot_no,a.flat_size as Plot_size,a.sqft_price,a.unit_price,a.disc_price,a.utility_price,a.oth_price,a.park_price,a.bank_loan,a.total_price,a.status,a.booked_on FROM `tbl_flat_info` a,tbl_project_info b WHERE a.proj_code=b.proj_code ".$proj_con.$date_con.$flat_con;
+		break;
+    case 4:
+	$report="Project Information";
+		if(isset($proj_code)) 
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con='proj_code='.$proj_code;}
+else $proj_con=1;
+
+	$sql="SELECT `proj_code`,`proj_name`,`proj_add`,`no_of_gara`,`work_start`,`expc_date`,`day_defaul`,`no_of_inst`,`rate_sqft` FROM `tbl_project_info` WHERE ".$proj_con;
+		break;
+	    case 5:
+		if(isset($party_code))
+{$client_name=find_a_field('tbl_party_info','party_name','party_code='.$party_code); $party_con=' party_code='.$party_code;}
+
+	$report="Client Detail Information";
+
+	$sql="SELECT `party_code`,`party_name`,`fname` as full_name,`per_add` as permanent_address,`per_tel` as Permanent_address,`pre_add` as present_address,`pre_tel_of` as Present_tel_no,`tin_no`,`birth_date`,`nominee`,`naddr` as nominee_address,`nrelation` as nominee_relation FROM `tbl_party_info` where".$party_con;
+		break;
+	
+    case 6:
+		$report="Collection Statement(Total)";
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.rec_date between \''.$fr_date.'\' and \''.$to_date.'\'';}
+		$sql="select a.rec_date as tr_date,a.cheq_no,b.proj_name".$flat_show.",a.rec_amount as total_amt from tbl_receipt a,tbl_project_info b where a.proj_code=b.proj_code ".$proj_con.$date_con.$flat_con." order by a.rec_date";
+		break;
+		case 7:
+		$report="Payment Statement";
+		if(isset($_POST['mr'])&&$_POST['mr']>0)
+		{$mr_no=$_POST['mr']; $mr_con=' and a.rec_no='.$mr_no;}
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.rec_date between \''.$fr_date.'\' and \''.$to_date.'\'';}
+		$sql="SELECT a.`rec_date`,a.`rec_no` as m_r_no,b.proj_name,a.flat_no,c.party_name,a.`rec_amount`,
+concat_ws(' ','C/NO:',a.`cheq_no`,'DT:',a.`cheq_date`,'Bank:',a.`bank_name`,'BH:',a.`branch` ) as detail
+FROM `tbl_receipt` a, tbl_party_info c,tbl_project_info b  
+WHERE a.proj_code=b.proj_code and a.party_code=c.party_code ".$proj_con.$date_con.$flat_con.$mr_con;
+		break;
+		
+	case 11:
+        $report="OutStanding Dues";
+if(isset($party_code))
+{$client_name=find_a_field('tbl_party_info','party_name','party_code='.$party_code); $party_con=' and d.party_code='.$party_code;}
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+		
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.inst_date between \''.$fr_date.'\' and \''.$to_date.'\'';}
+		$sql="select c.proj_name as project_name,a.flat_no as allot_no,b.party_name as client_name,a.inst_date,a.inst_amount as payable_amt,a.rcv_amount as received_amt from tbl_flat_cost_installment a, tbl_party_info b, tbl_project_info c,tbl_flat_info d where a.proj_code=c.proj_code and d.party_code=b.party_code and a.proj_code=d.proj_code and a.build_code=d.build_code and a.flat_no=d.flat_no and rcv_status=0 ".$proj_con.$date_con.$flat_con.$party_con." order by a.inst_date";
+		break;
+	case 12:
+        $report="Expected Collection";
+if(isset($party_code))
+{$client_name=find_a_field('tbl_party_info','party_name','party_code='.$party_code); $party_con=' and d.party_code='.$party_code;}
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+		
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.inst_date between \''.$fr_date.'\' and \''.$to_date.'\'';}
+		$sql="select c.proj_name as project_name,a.flat_no as allot_no,b.party_name as client_name,a.inst_date,a.inst_amount as payable_amt,a.rcv_amount as received_amt from tbl_flat_cost_installment a, tbl_party_info b, tbl_project_info c,tbl_flat_info d where a.proj_code=c.proj_code and d.party_code=b.party_code and a.proj_code=d.proj_code and a.build_code=d.build_code and a.flat_no=d.flat_no ".$proj_con.$date_con.$flat_con.$party_con." order by a.inst_date";
+		break;
+		
+		
+   
+	case 13:
+        $report="Payment Schedule";
+if(isset($party_code))
+{$client_name=find_a_field('tbl_party_info','party_name','party_code='.$party_code); $party_con=' and d.party_code='.$party_code;}
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+		
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.inst_date between \''.$fr_date.'\' and \''.$to_date.'\'';}
+		$sql="SELECT e.pay_desc,a.inst_no, c.proj_name AS project_name,a.flat_no AS allot_no,  a.inst_date, a.inst_amount AS payable_amt, a.rcv_date AS receive_date, a.rcv_amount AS receive_amt
+FROM 
+tbl_flat_cost_installment a, 
+tbl_party_info b, 
+tbl_project_info c, 
+tbl_flat_info d,
+tbl_payment_head e
+WHERE a.proj_code = c.proj_code
+AND d.party_code = b.party_code
+AND a.proj_code = d.proj_code
+AND a.build_code = d.build_code
+AND a.flat_no = d.flat_no
+AND a.pay_code = e.pay_code".$proj_con.$date_con.$flat_con.$party_con." order by a.inst_date";
+		break;
+		case 14:
+        $report="Party Rent Agreement Terms";
+if(isset($party_code))
+{$client_name=find_a_field('tbl_party_info','party_name','party_code='.$party_code); $party_con=' and a.party_code='.$party_code;}
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+
+		$sql="SELECT b.`proj_name`,a.`flat_no`,c.`party_name`,a.`monthly_rent`,a.`effective_date`,a.`expire_date`,a.`notice_period`,a.discontinue_term,a.`witness1`,a.`witness1_address` FROM `tbl_rent_info` a,tbl_party_info c,tbl_project_info b WHERE a.party_code=c.party_code and a.proj_code=b.proj_code ".$proj_con.$flat_con.$party_con;
+		break;
+		case 15:
+        $report="Party Rent Payment Terms";
+if(isset($party_code))
+{$client_name=find_a_field('tbl_party_info','party_name','party_code='.$party_code); $party_con=' and a.party_code='.$party_code;}
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+
+		$sql="SELECT b.`proj_name`,a.`flat_no`,c.`party_name`,a.`security_money`,a.`monthly_rent`,a.`electricity_bill`,a.`other_bill`,a.`wasa_bill`,a.`gas_bill`,(a.`monthly_rent`++a.`electricity_bill`+a.`other_bill`+a.`wasa_bill`+a.`gas_bill`) as total_payable FROM `tbl_rent_info` a,tbl_party_info c,tbl_project_info b WHERE a.party_code=c.party_code and a.proj_code=b.proj_code ".$proj_con.$flat_con.$party_con;
+		break;
+		case 16:
+        $report="Party Rent Payment Terms";
+if(isset($party_code))
+{$client_name=find_a_field('tbl_party_info','party_name','party_code='.$party_code); $party_con=' and a.party_code='.$party_code;}
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+
+		$sql="SELECT a.jv_no as Invoice_no,a.mon as period,b.`proj_name`,a.`flat_no`,c.`party_name`,a.`rent_amt`,a.`electricity_bill`,a.`other_bill`,a.`wasa_bill`,a.`gas_bill`,total_amt as total_amt FROM `tbl_rent_receive` a,tbl_party_info c,tbl_project_info b WHERE a.party_code=c.party_code and a.proj_code=b.proj_code ".$proj_con.$flat_con.$party_con;
+		break;
+
+	case 24:
+	$report="Collection Statement(Cash)";
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.rec_date between \''.$fr_date.'\' and \''.$to_date.'\'';}
+		$sql="select a.rec_date as tr_date,b.proj_name".$flat_show.",a.rec_amount as total_amt from tbl_receipt a,tbl_project_info b where a.pay_mode=0 and a.proj_code=b.proj_code ".$proj_con.$date_con.$flat_con." order by a.rec_date";
+		break;
+	case 25:
+	$report="Collection Statement(Chaque)";
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.rec_date between \''.$fr_date.'\' and \''.$to_date.'\'';}
+		$sql="select a.rec_date as tr_date,a.cheq_no,b.proj_name".$flat_show.",a.rec_amount as total_amt from tbl_receipt a,tbl_project_info b where a.pay_mode=1 and a.proj_code=b.proj_code ".$proj_con.$date_con.$flat_con." order by a.rec_date";
+		break;
+		
+		
+// COMMISION REPORTS
+		case 31:
+	$report="Share Holder Investment Amount";
+		if(isset($proj_code))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.opening_date between \''.$fr_date.'\' and \''.$to_date.'\'';}
+
+		$sql="SELECT a.`member_no`,a.`party_name` as share_holder,b.proj_name,a.`status`,a.`agent_code`,c.`emp_name` as agent_name,a.`opening_date` as invest_date,a.`invested`,a.`withdraw` FROM `tbl_director_info` AS a,tbl_project_info as b,tbl_employee_info as c WHERE a.proj_code=b.proj_code and c.emp_id=a.`agent_code`".$date_con.$proj_con ." order by a.proj_code,a.agent_code";
+		break;
+		
+		case 33:
+	$report="Running Share Holder Information";
+		if(isset($proj_code))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.opening_date between \''.$fr_date.'\' and \''.$to_date.'\'';}
+
+		$sql="SELECT a.`member_no`,a.`party_name` as share_holder,b.proj_name,a.`agent_code`,c.`emp_name` as agent_name,a.`opening_date` as invest_date,a.`invested`,a.`withdraw` FROM `tbl_director_info` AS a,tbl_project_info as b,tbl_employee_info as c WHERE a.proj_code=b.proj_code and c.emp_id=a.`agent_code` and a.status='Running' ".$date_con.$proj_con ." order by a.proj_code,a.agent_code";
+		break;
+		
+		case 34:
+	$report="Withdrawn Share Holder Information";
+		if(isset($proj_code))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.opening_date between \''.$fr_date.'\' and \''.$to_date.'\'';}
+
+		$sql="SELECT a.`member_no`,a.`party_name` as share_holder,b.proj_name,a.`agent_code`,c.`emp_name` as agent_name,a.`opening_date` as invest_date,a.`invested`,a.`status_date` as withdrawn_date,a.`withdraw` FROM `tbl_director_info` AS a,tbl_project_info as b,tbl_employee_info as c WHERE a.proj_code=b.proj_code and c.emp_id=a.`agent_code` and a.status='Withdrawn' ".$date_con.$proj_con ." order by a.proj_code,a.agent_code";
+		break;
+		
+		case 35:
+	$report="Agent Information";
+		
+		$sql="SELECT `emp_id`,`emp_name`,`emp_designation`,`emp_joining_date`,`emp_contact_no`, (select count(1) from tbl_director_info where agent_code=a.emp_id) as total_member, (select sum(invested) from tbl_director_info where agent_code=a.emp_id) as total_invested, (select sum(withdraw) from tbl_director_info where agent_code=a.emp_id)  as total_withdrawn FROM `tbl_employee_info` as a WHERE 1";
+		break;
+		
+		 case 111:
+	$report="Project Commission Report ";
+		if(isset($proj_code)) 
+		if(!isset($flat_no))
+		if(!isset($section_name))
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); $proj_con=' and a.proj_code='.$proj_code;}
+		else
+{$project_name=find_a_field('tbl_project_info','proj_name','proj_code='.$proj_code); 
+$allotment_no=$flat_no; $flat_show=',a.flat_no as allot_no'; $flat_con=' and a.proj_code='.$proj_code.' and a.flat_no=\''.$flat_no.'\' ';}
+		if(isset($party_code))
+{$client_name=find_a_field('tbl_party_info','party_name','party_code='.$party_code); $party_con=' and c.party_code='.$party_code;}
+
+		if(isset($t_date)) 
+{$to_date=$t_date; $fr_date=$f_date; $date_con=' and a.booked_on between \''.$fr_date.'\' and \''.$to_date.'\'';}
+	 $sql="SELECT b.proj_name,a.flat_no as Plot_no,a.flat_size as Plot_size,i.sr_executive_commission,i.team_leader_commission,i.group_leader_commission,i.other_commission,
+	  
+	(i.sr_executive_commission+i.team_leader_commission+i.group_leader_commission+i.other_commission) as total_commission,a.total_price,(select PBI_NAME from personnel_basic_info where PBI_ID=c.sr_executive) as sr_executive_name,(select PBI_NAME from personnel_basic_info where PBI_ID=c.team_leader) as team_leader,(select PBI_NAME from personnel_basic_info where PBI_ID=c.group_leader) as group_leader, a.status,a.booked_on,c.party_name FROM `tbl_flat_info` a,tbl_project_info b,tbl_party_info c,tbl_flat_cost_installment i WHERE a.party_code=i.party_code and a.proj_code=b.proj_code and a.party_code=c.party_code ".$proj_con.$date_con.$flat_con.$party_con." group by i.party_code";
+	
+	break;
+		
+		//ROW_NUMBER() OVER(ORDER BY Id) AS Row
+}
+}
+
+?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title><?=$report?></title>
+<link href="../../css/report.css" type="text/css" rel="stylesheet" />
+<script language="javascript">
+function hide()
+{
+document.getElementById('pr').style.display='none';
+}
+</script>
+</head>
+<body>
+<div align="center" id="pr">
+<input type="button" value="Print" onclick="hide();window.print();"/>
+</div>
+<div class="main">
+<?
+		$str 	.= '<div class="header">';
+		if(isset($_SESSION['company_name'])) 
+		$str 	.= '<h1>'.$_SESSION['company_name'].'</h1>';
+		if(isset($report)) 
+		$str 	.= '<h2>'.$report.'</h2>';
+		if(isset($to_date)) 
+		$str 	.= '<h2>'.$fr_date.' To '.$to_date.'</h2>';
+		$str 	.= '</div>';
+		if(isset($_SESSION['company_logo'])) 
+		//$str 	.= '<div class="logo"><img height="60" src="'.$_SESSION['company_logo'].'"</div>';
+		$str 	.= '<div class="left">';
+		if(isset($project_name)) 
+		$str 	.= '<p>Project Name: '.$project_name.'</p>';
+		if(isset($allotment_no)) 
+		$str 	.= '<p>Allotment No.: '.$allotment_no.'</p>';
+		$str 	.= '</div><div class="right">';
+		if(isset($client_name)) 
+		$str 	.= '<p>Client Name: '.$client_name.'</p>';
+		$str 	.= '</div><div class="date">Reporting Time: '.date("h:i A d-m-Y").'</div>';
+
+if(isset($sql)&&$sql!='') echo report_create($sql,1,$str);
+?></div>
+</body>
+</html>

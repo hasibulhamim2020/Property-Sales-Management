@@ -1,0 +1,266 @@
+/* CSS Document */
+
+.tabledesign{
+	width: 100%;
+	padding: 0;
+	height:328px;
+	overflow:auto;
+	margin: 0px auto 1px auto;
+	background-color:#ffffff;
+	border-left: 1px solid #417216;
+	text-align:left;
+}
+
+.tabledesign th {
+	font: bold 11px Verdana, Arial, Helvetica, sans-serif;
+	background-color:#cbde72;
+	color: #000;
+	border-right: 1px solid #417216;
+	border-bottom: 1px solid #417216;
+	border-top: 1px solid #417216;
+	text-align: left;
+	padding: 2px 2px 2px 2px;
+}
+
+.tabledesign td{
+	border-right: 1px solid #417216;
+	border-bottom: 1px solid #417216;
+	padding: 3px 3px 3px 2px;
+	color: #000;
+	text-align:left;
+}
+.tabledesign tr{
+	color: #4f6b72;
+}
+.tabledesign tr:hover{
+	background: #aec495;
+	color: #4f6b72;
+}
+tr.alt {
+	background: #eefbdb;
+	color: #000;
+}
+tr.alt:hover{
+	background: #7bac39;
+	color: #797268;
+}
+/*------------------Smal table Scroll-------------------*/
+/* CSS Document */
+
+.tabledesign1{
+	width: 100%;
+	padding: 0;
+	height:250px;
+	overflow:auto;
+	margin: 0px auto 1px auto;
+	background-color:#ffffff;
+	border-left: 1px solid #417216;
+	text-align:left;
+}
+
+.tabledesign1 th {
+	font: bold 11px Verdana, Arial, Helvetica, sans-serif;
+	background-color:#cbde72;
+	color: #000;
+	border-right: 1px solid #417216;
+	border-bottom: 1px solid #417216;
+	border-top: 1px solid #417216;
+	text-align: left;
+	padding: 2px 2px 2px 2px;
+}
+
+.tabledesign1 td{
+	border-right: 1px solid #417216;
+	border-bottom: 1px solid #417216;
+	padding: 3px 3px 3px 2px;
+	color: #000;
+	text-align:left;
+}
+.tabledesign1 tr{
+	color: #4f6b72;
+}
+.tabledesign1 tr:hover{
+	background: #aec495;
+	color: #4f6b72;
+}
+tr.alt {
+	background: #eefbdb;
+	color: #000;
+}
+tr.alt:hover{
+	background: #7bac39;
+	color: #797268;}
+/*---------------------------------------*/
+
+
+.tabledesign2 {
+	width: 100%;
+	padding: 0;
+	margin: 0px auto 1px auto;
+	background-color:#ffffff;
+	border-left: 1px solid #417216;
+	text-align:left;
+}
+
+.tabledesign2 th {
+	font: bold 11px Verdana, Arial, Helvetica, sans-serif;
+	background-color:#cbde72;
+	color: #000;
+	border-right: 1px solid #417216;
+	border-bottom: 1px solid #417216;
+	border-top: 1px solid #417216;
+	text-align: left;
+	padding: 3px 3px 3px 12px;
+}
+
+.tabledesign2 td{
+	border-right: 1px solid #417216;
+	border-bottom: 1px solid #417216;
+	padding: 3px 3px 3px 12px;
+	color: #000;
+	text-align:left;
+}
+.tabledesign2 tr{
+	color: #4f6b72;
+}
+.tabledesign2 tr:hover{
+	background: #aec495;
+	color: #4f6b72;
+}
+/*---------------------------------*/
+
+.table_normal{
+background-color:none;
+border:1px solid #417216;
+background-color:#d4f6a0;
+border-collapse:collapse;
+text-align:center;
+color:#000000;
+}
+.table_normal td{
+padding:2px;
+text-align:center;}
+
+
+.table_normal1{
+width:100%;
+background-color:none;
+border:1px solid #417216;
+background-color:#d4f6a0;
+border-collapse:collapse;
+text-align:center;
+color:#000000;
+}
+.table_normal1 td{
+padding:2px;
+border-right: 1px solid #417216;
+border-left: 1px solid #417216;
+border-right: 1px solid #417216;
+border-bottom: 1px solid #417216;
+
+text-align:center;}
+/*------------------Flat Allotment text field---------------------*/
+.table_flat{
+font-size:14px;
+background-color:none;
+border:1px solid #417216;
+background-color:#d4f6a0;
+border-collapse:collapse;
+text-align:center;
+color:#000000;
+}
+.table_flat td{
+padding:0px;
+text-align:center;}
+
+td.red {
+	background:url(../images/1.gif) repeat-x;
+	width:100px;
+	height:40px;
+	color: #000000;
+	border-left:1px solid #cf4700;
+	border-right:1px solid #cf4700;
+	border-collapse:collapse;
+	font-weight:bold;
+}
+td.red:hover{
+	background:url(../images/0.gif) repeat-x;
+	width:100px;
+	height:40px;
+	color: #000000;
+	border-left:1px solid #cf4700;
+	border-right:1px solid #cf4700;
+	border-collapse:collapse;
+	font-weight:bold;
+}
+td.blue {
+	background:url(../images/2.gif)  repeat-x;
+	width:100px;
+	height:40px;
+	color: #000000;
+	border-left:1px solid #86b2d1;
+	border-right:1px solid #86b2d1;
+	border-collapse:collapse;
+	font-weight:bold;
+}
+td.blue:hover{
+	background:url(../images/3.gif)  repeat-x;
+	height:40px;
+	color: #ffffff;
+	border-left:1px solid #86b2d1;
+	border-right:1px solid #86b2d1;
+	border-collapse:collapse;
+	font-weight:bold;
+}
+td.yallow {
+	background:url(../images/4.gif) repeat-x;
+	width:100px;
+	height:40px;
+	color: #000000;
+	border-left:1px solid #dea303;
+	border-right:1px solid #dea303;
+	border-collapse:collapse;
+	font-weight:bold;
+}
+td.yallow:hover{
+	background:url(../images/5.gif)  repeat-x;
+	height:40px;
+	color: #ffffff;
+	border-left:1px solid #b38c4f;
+	border-right:1px solid #b38c4f;
+	border-collapse:collapse;
+	font-weight:bold;
+}
+td.purple{
+	background:url(../images/8.gif) repeat-x;
+	width:100px;
+	height:40px;
+	color: #000000;
+	border-left:1px solid #b4226e;
+	border-right:1px solid #b4226e;
+	border-collapse:collapse;
+	font-weight:bold;
+}
+td.purple:hover{
+	background:url(../images/9.gif) repeat-x;
+	height:40px;
+	color: #ffffff;
+	font-weight:bold;
+	border-left:1px solid #b4226e;
+	border-right:1px solid #b4226e;
+	border-collapse:collapse;
+}
+td.pink{
+	background:url(../images/8.gif) repeat-x;
+	width:100%;
+	height:35px;
+	color: #000000;
+	border-left:1px solid #ab50e8;
+	border-right:1px solid #ab50e8;
+	border-collapse:collapse;
+	font-weight:bold;
+}
+
+
+
+
